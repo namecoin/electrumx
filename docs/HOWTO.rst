@@ -15,17 +15,16 @@ small - pull requests are welcome.
 ================ ========================
 Package          Notes
 ================ ========================
-Python3          ElectrumX uses asyncio.  Python version >= 3.8 is
+Python3          ElectrumX uses asyncio.  Python version >= 3.10 is
                  **required**.
 `aiohttp`_       Python library for asynchronous HTTP.  Version >=
                  2.0 required.
-`pylru`_         Python LRU cache package.
 DB Engine        A database engine package is required; two are
                  supported (see `Database Engine`_ below).
 ================ ========================
 
 Some coins need an additional package, typically for their block hash
-functions. For example, `x11_hash`_ is required for DASH. Scrypt coins
+functions. For example, `dash_hash`_ is required for DASH. Scrypt coins
 require a Python interpreter compiled and/or linked with OpenSSL 1.1.0
 or higher.
 
@@ -63,19 +62,28 @@ Database Engine
 ===============
 
 You can choose from LevelDB and RocksDB to store transaction
-information on disk.  The time taken and DB size is not significantly
-different.  We tried to support LMDB, but its history write performance
+information on disk.  On an SSD, RocksDB performs better than LevelDB.
+We tried to support LMDB, but its history write performance
 was much worse.
 
 You will need to install one of:
 
 + `plyvel <https://plyvel.readthedocs.io/en/latest/installation.html>`_ for LevelDB.
 
-  Included as part of a regular pip or ``setup.py`` installation of ElectrumX.
-+ `python-rocksdb <https://pypi.python.org/pypi/python-rocksdb>`_ for RocksDB
+  ``apt install libleveldb-dev build-essential``
 
-  ``pip3 install python-rocksdb`` or use the rocksdb extra install option to ElectrumX.
-+ `pyrocksdb <http://pyrocksdb.readthedocs.io/en/v0.4/installation.html>`_ for an unmaintained version that doesn't work with recent releases of RocksDB
+  ``pip3 install plyvel`` , or use the ``[leveldb]`` extra install option to ElectrumX.
+
++ `rocksdb-ng <https://pypi.org/project/rocksdb-ng>`_ for RocksDB
+
+  (Should work with RocksDB versions 8-10)
+
+  ``apt install librocksdb-dev build-essential pkg-config``
+
+  ``pip3 install rocksdb-ng`` , or use the ``[rocksdb]`` extra install option to ElectrumX.
+
++ `python-rocksdb <https://pypi.python.org/pypi/python-rocksdb>`_ for an unmaintained version
+  that doesn't work with recent releases of RocksDB (only <7.0)
 
 Running
 =======
@@ -95,9 +103,9 @@ There are many extra Python dependencies available to fit the needs of your
 system or coins. For example, to install the RocksDB dependencies and a faster
 JSON parsing library::
 
-    pip3 install .[rocksdb,ujson]
+    pip3 install ".[rocksdb,ujson]"
 
-see setup.py's ``extra_requires`` for a complete list.
+see pyproject.toml's ``project.optional-dependencies`` for a complete list.
 
 You can also run the code from the source tree or a copy of it.
 
@@ -119,7 +127,12 @@ live on an SSD::
 Process limits
 --------------
 
-You must ensure the ElectrumX process has a large open file limit.
+The ElectrumX process needs a large open file limit. On Linux systems,
+the default (:command:`ulimit -n`) (soft) open file limit is usually 1,024.
+ElectrumX tries to raise this automatically during startup to the hard limit,
+which is usually 100,000+. If that fails (which would get logged),
+you might have to manually increase the limit.
+
 During sync it should not need more than about 1,024 open files.  When
 serving it will use approximately 256 for LevelDB plus the number of
 incoming connections.  It is not unusual to have 1,000 to 2,000
@@ -443,7 +456,6 @@ You can then set the port as follows and advertise the service externally on the
 .. _`daemontools`: http://cr.yp.to/daemontools.html
 .. _`runit`: http://smarden.org/runit/index.html
 .. _`aiohttp`: https://pypi.python.org/pypi/aiohttp
-.. _`pylru`: https://pypi.python.org/pypi/pylru
-.. _`x11_hash`: https://pypi.python.org/pypi/x11_hash
+.. _`dash_hash`: https://pypi.python.org/pypi/dash_hash
 .. _`contrib/raspberrypi3/install_electrumx.sh`: https://github.com/spesmilo/electrumx/blob/master/contrib/raspberrypi3/install_electrumx.sh
 .. _`contrib/raspberrypi3/run_electrumx.sh`: https://github.com/spesmilo/electrumx/blob/master/contrib/raspberrypi3/run_electrumx.sh

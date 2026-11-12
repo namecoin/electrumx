@@ -30,6 +30,17 @@ These environment variables are always required:
   relative to the parent process working directory.  This is the
   directory of the `run` script if you use it.
 
+.. envvar:: DB_ENGINE
+
+  Database engine for the UTXO and history database.
+  Choose one of ``leveldb`` or ``rocksdb``.
+  You will need to install the appropriate python package for your engine.
+  In ElectrumX 1.x versions, the default was leveldb.
+  Warning: It is not possible to switch back and forth,
+  the on-disk DB formats are not compatible with each other: you have to resync from genesis.
+  LevelDB was written with HDDs in mind. RocksDB is more modern
+  and on an SSD takes around ~25% less time than LevelDB to sync from genesis.
+
 .. envvar:: DAEMON_URL
 
   A comma-separated list of daemon URLs.  If more than one is provided
@@ -204,13 +215,6 @@ These environment variables are optional:
   Must be a :envvar:`NET` from one of the **Coin** classes in
   `lib/coins.py`_.  Defaults to ``mainnet``.
 
-.. envvar:: DB_ENGINE
-
-  Database engine for the UTXO and history database.  The default is
-  ``leveldb``.  The other alternative is ``rocksdb``.  You will need
-  to install the appropriate python package for your engine.  The
-  value is not case sensitive.
-
 .. envvar:: DONATION_ADDRESS
 
   The server donation address reported to Electrum clients.  Defaults
@@ -281,14 +285,6 @@ These environment variables are optional:
   version string. For example to drop versions from 1.0 to 1.2 use
   the regex ``1\.[0-2]\.\d+``.
 
-.. envvar:: DROP_CLIENT_UNKNOWN
-
-  Set to anything non-empty to deny serving clients which do not
-  identify themselves first by issuing the server.version method
-  call with a non-empty client identifier. The connection is dropped 
-  on first actual method call. This might help to filter out simple 
-  robots. This behavior is off by default.
-
 
 Resource Usage Limits
 =====================
@@ -318,7 +314,7 @@ raise them.
 .. envvar:: MAX_SEND
 
   The maximum size of a response message to send over the wire, in
-  bytes.  Defaults to 1,000,000 (except for AuxPoW coins, which default
+  bytes.  Defaults to 8,100,000 (except for AuxPoW coins, which default
   to 10,000,000).  Values smaller than 350,000 are taken as 350,000
   because standard Electrum protocol header "chunk" requests are almost
   that large.
@@ -328,13 +324,19 @@ raise them.
   :envvar:`MAX_SEND` is a stop-gap until the protocol is improved to
   admit incremental history requests.  Each history entry is
   approximately 100 bytes, so the default is equivalent to a history
-  limit of around 10,000 entries, which should be ample for most
+  limit of around 80,000 entries, which should be ample for most
   legitimate users.  If you use a higher default, bear in mind one
-  client can request history for multiple addresses.  Also note that
-  the largest raw transaction you will be able to serve to a client is
-  just under half of :envvar:`MAX_SEND`, as each raw byte becomes 2
-  hexadecimal ASCII characters on the wire.  Very few transactions on
-  Bitcoin mainnet are over 500KB in size.
+  client can request history for multiple addresses.
+
+  Also note that the largest raw transaction you will be able to serve to a client is
+  just under half of :envvar:`MAX_SEND`, as each raw byte becomes 2 hexadecimal
+  ASCII characters on the wire.  For Bitcoin, the consensus limit for tx size is
+  4 M weight units, while the standardness (policy) limit is 400 K weight units.
+  When serialized as bytes, 4 M weight units is 4 MB, and when encoded as hex that is 8 MB.
+  The default was chosen so that such a tx could still be served.
+  (Note: in multi-party protocol, such as Lightning, a counterparty might collude with a miner
+  to get a tx mined. Being able to obtain such a raw tx might be part of the security
+  requirements of a protocol.)
 
 .. envvar:: COST_SOFT_LIMIT
 .. envvar:: COST_HARD_LIMIT
@@ -504,5 +506,5 @@ your available physical RAM:
 
   I do not recommend raising this above 2000.
 
-.. _lib/coins.py: https://github.com/spesmilo/electrumx/blob/master/electrumx/lib/coins.py
+.. _lib/coins.py: https://github.com/spesmilo/electrumx/blob/master/src/electrumx/lib/coins.py
 .. _uvloop: https://pypi.python.org/pypi/uvloop

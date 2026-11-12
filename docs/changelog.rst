@@ -3,6 +3,100 @@
 ===========
 
 
+Version 1.20.0 (03 June 2026)
+=============================
+
+Small fixes and general maintenance.
+
+After this release, the master branch will move towards a 2.0 release, which will require
+a resync from genesis. So for a while, master might be less stable than usual.
+
+* fix: lib/tx.py: vsize calculation was off by 6-8 vbytes (`spesmilo/electrumx#328`_).
+  Added tests. The discrepancy was externally observable via the `mempool.get_fee_histogram` RPC.
+* fix: don't get stuck during shutdown waiting for SessionManager to stop (`spesmilo/electrumx#339`_)
+* fix: protocol: name of arg for broadcast_package RPC: tx_package->raw_txs (`c9b72e7e`_)
+* changed: peer discovery: allow short chain splits (`spesmilo/electrumx#351`_)
+* changed: rm 'attrs' as a direct dependency, use stdlib `dataclasses` instead (`spesmilo/electrumx#345`_)
+* new: daemon: check early "txindex" is enabled for bitcoind, error if missing (`spesmilo/electrumx#349`_)
+* new: coins: add Bitcoin mutinynet (`spesmilo/electrumx#352`_)
+* maintenance: coins: some clean-up (`spesmilo/electrumx#344`_, `spesmilo/electrumx#348`_, ...)
+* maintenance: moved CI from Cirrus CI to Github Actions (`spesmilo/electrumx#340`_)
+
+(We also made some changes to make RocksDB practical and nicer to use, but if you currently use LevelDB,
+maybe consider waiting for 2.0 before you resync the DB)
+
+
+Version 1.19.0 (11 Nov 2025)
+=============================
+
+* protocol:
+   - new: implement electrum protocol version 1.6 (`spesmilo/electrumx#317`_, ...)
+     (`spesmilo/electrum-protocol#6`_).
+     The min supported protocol version remains 1.4, the max is now 1.6.
+* coins:
+   - changed: for `COIN=Bitcoin`, there is now a min required bitcoind version:
+     Bitcoin Core 28.0 (or Knots 28) (`spesmilo/electrumx#316`_).
+     This is due to protocol 1.6 requiring a bitcoind with working `submitpackage` RPC.
+* security:
+   - fix DOS vector: if MAX_SESSIONS was reached, when using python 3.12+, the server
+     stopped accepting new incoming sessions until full-restart (`spesmilo/electrumx#312`_)
+* session:
+   - changed: add warmup budget to PaddedRSTransport (`spesmilo/electrumx#323`_):
+     this is a small relaxation of the traffic analysis countermeasures added in 1.18,
+     where the first 1024 bytes we send are now exempt from buffering (and hence delays)
+   - fix ReplyAndDisconnect for PaddedRSTransport: flush message buffer (`spesmilo/electrumx#322`_)
+* env:
+   - rm DROP_CLIENT_UNKNOWN opt-in env var: this behaviour is now mandated by protocol 1.6
+     and we just always enforce it (~small breaking change, affected clients would have
+     already been considered misbehaving)
+* misc:
+   - new: try to raise `ulimit -n` open file limit automatically at startup
+     (`spesmilo/electrumx#326`_)
+
+
+Version 1.18.0 (14 June 2025)
+=============================
+
+* protocol:
+   - add basic countermeasures against traffic analysis by padding the jsonrpc payload
+     with whitespaces to have ~uniform-size TCP packets, and by artificially delaying
+     sending messages a bit. (`spesmilo/electrumx#301`_)
+* dependencies:
+   - bump required aiorpcx to >=0.25.0,<0.26
+
+
+Version 1.17.0 (16 Apr 2025)
+============================
+
+Long time no see!
+
+* coins:
+   - rm support for legacy coin name "BitcoinSegwit" (`ca59151d`_)
+     (users should just change their config files to :code:`COIN=Bitcoin`)
+   - add support for Bitcoin Signet (`spesmilo/electrumx#122`_)
+   - add support for Bitcoin Testnet4 (`spesmilo/electrumx#273`_)
+* dependencies:
+   - bump required python to >=3.10
+   - bump required aiorpcx to >=0.23.0,<0.25
+   - rm "pylru" dep, instead bundle stripped-down "cachetools" (`spesmilo/electrumx#248`_)
+* session: log IP address of excessive resusage sessions (`spesmilo/electrumx#75`_)
+* robustness:
+   - session: more robust session handling (`25339328`_, `8198ab99`_)
+   - daemon: catch RPC_PARSE_ERROR from bitcoind and simply retry (`31489365`_)
+* env:
+   - add MAX_RECV environment variable (`a0d3053f`_)
+   - increase default for MAX_SEND (`2969ab11`_)
+* protocol: increase resolution of :code:`mempool.get_fee_histogram` (`265a5a87`_)
+* LocalRPC:
+   - add --timeout arg (`5f4dd2cd`_)
+   - add commands to help debug memory leaks (`f5582b29`_)
+* build/maintenance:
+   - add scripts for reproducible build (`0ba87447`_)
+   - migrate from setup.py to pyproject.toml
+   - refactor file layout flat->src (`spesmilo/electrumx#298`_)
+* some internal refactors in preparation for future changes
+
+
 Version 1.16.0 (10 Dec 2020)
 ============================
 
@@ -204,7 +298,43 @@ This fork maintained by:
 .. _#35:  https://github.com/spesmilo/electrumx/pull/35
 .. _#67:  https://github.com/spesmilo/electrumx/pull/67
 .. _#70:  https://github.com/spesmilo/electrumx/pull/70
+.. _spesmilo/electrumx#75:  https://github.com/spesmilo/electrumx/pull/75
+.. _spesmilo/electrumx#122:  https://github.com/spesmilo/electrumx/pull/122
+.. _spesmilo/electrumx#248:  https://github.com/spesmilo/electrumx/pull/248
+.. _spesmilo/electrumx#273:  https://github.com/spesmilo/electrumx/pull/273
+.. _spesmilo/electrumx#298:  https://github.com/spesmilo/electrumx/pull/298
+.. _spesmilo/electrumx#301:  https://github.com/spesmilo/electrumx/pull/301
+.. _spesmilo/electrumx#312:  https://github.com/spesmilo/electrumx/pull/312
+.. _spesmilo/electrumx#316:  https://github.com/spesmilo/electrumx/pull/316
+.. _spesmilo/electrumx#317:  https://github.com/spesmilo/electrumx/pull/317
+.. _spesmilo/electrumx#322:  https://github.com/spesmilo/electrumx/pull/322
+.. _spesmilo/electrumx#323:  https://github.com/spesmilo/electrumx/pull/323
+.. _spesmilo/electrumx#326:  https://github.com/spesmilo/electrumx/pull/326
+.. _spesmilo/electrumx#328:  https://github.com/spesmilo/electrumx/pull/328
+.. _spesmilo/electrumx#339:  https://github.com/spesmilo/electrumx/pull/339
+.. _spesmilo/electrumx#340:  https://github.com/spesmilo/electrumx/pull/340
+.. _spesmilo/electrumx#344:  https://github.com/spesmilo/electrumx/pull/344
+.. _spesmilo/electrumx#345:  https://github.com/spesmilo/electrumx/pull/345
+.. _spesmilo/electrumx#348:  https://github.com/spesmilo/electrumx/pull/348
+.. _spesmilo/electrumx#349:  https://github.com/spesmilo/electrumx/pull/349
+.. _spesmilo/electrumx#351:  https://github.com/spesmilo/electrumx/pull/351
+.. _spesmilo/electrumx#352:  https://github.com/spesmilo/electrumx/pull/352
 
 
 .. _4b3f6510:  https://github.com/spesmilo/electrumx/commit/4b3f6510e94670a013c1abe6247cdd2b0e7e6f8c
 .. _a61136c5:  https://github.com/spesmilo/electrumx/commit/a61136c596d6a0290a6be9d21fb7c095c3cea21e
+.. _ca59151d:  https://github.com/spesmilo/electrumx/commit/ca59151d7365aabd2394fb39aac1faa25949b49d
+.. _25339328:  https://github.com/spesmilo/electrumx/commit/25339328a7468235071d152f728b214df10d4c56
+.. _8198ab99:  https://github.com/spesmilo/electrumx/commit/8198ab99603a7e74083b3569c15dad13850c721e
+.. _31489365:  https://github.com/spesmilo/electrumx/commit/314893655a7cc0bfcc216b07900fa77b5f66e148
+.. _a0d3053f:  https://github.com/spesmilo/electrumx/commit/a0d3053f60074264b54b3ef7583f2600f4b73ead
+.. _2969ab11:  https://github.com/spesmilo/electrumx/commit/2969ab110412bebddc3f3e815467fb59538b613d
+.. _265a5a87:  https://github.com/spesmilo/electrumx/commit/265a5a87b8ad01f739049c0b1e80923aab318f58
+.. _5f4dd2cd:  https://github.com/spesmilo/electrumx/commit/5f4dd2cdb414464484407affbbaae6b7407696cb
+.. _f5582b29:  https://github.com/spesmilo/electrumx/commit/f5582b29792625e8cca7cf137a6718c2520bb9cb
+.. _0ba87447:  https://github.com/spesmilo/electrumx/commit/0ba87447cb293cfc4a8a26c1c27842b95666875a
+.. _c9b72e7e:  https://github.com/spesmilo/electrumx/commit/c9b72e7ea76bfb706b2df3e90c739116bf49678d
+
+
+.. _spesmilo/electrum-protocol#6:  https://github.com/spesmilo/electrum-protocol/pull/6
+

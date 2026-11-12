@@ -2,10 +2,8 @@
 ElectrumX
 =========
 
-.. image:: https://travis-ci.org/spesmilo/electrumx.svg?branch=master
-    :target: https://travis-ci.org/spesmilo/electrumx
-.. image:: https://coveralls.io/repos/github/spesmilo/electrumx/badge.svg
-    :target: https://coveralls.io/github/spesmilo/electrumx
+.. image:: https://github.com/spesmilo/electrumx/actions/workflows/ci.yml/badge.svg?branch=master
+    :target: https://github.com/spesmilo/electrumx/actions/workflows/ci.yml
 
 This project is a fork of `kyuupichan/electrumx <https://github.com/kyuupichan/electrumx>`_.
 The original author dropped support for Bitcoin, which we intend to keep.
@@ -22,8 +20,8 @@ Source Code
 ===========
 
 The project is hosted on `GitHub
-<https://github.com/spesmilo/electrumx/>`_.  and uses `Travis
-<https://travis-ci.org/spesmilo/electrumx>`_ for Continuous
+<https://github.com/spesmilo/electrumx/>`_.  and uses `GitHub Actions
+<https://github.com/spesmilo/electrumx/actions>`_ for Continuous
 Integration.
 
 Please submit an issue on the `bug tracker
@@ -34,7 +32,7 @@ Authors and License
 ===================
 
 Neil Booth wrote the vast majority of the code; see :ref:`Authors`.
-Python version at least 3.8 is required.
+Python version at least 3.10 is required.
 
 The code is released under the `MIT Licence
 <https://github.com/spesmilo/electrumx/LICENCE>`_.

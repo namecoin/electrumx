@@ -237,6 +237,12 @@ async def test_broadcast_transaction(daemon):
     daemon.session = ClientSessionGood(('sendrawtransaction', [raw_tx], tx_hash))
     assert await daemon.broadcast_transaction(raw_tx) == tx_hash
 
+@pytest.mark.asyncio
+async def test_broadcast_package(daemon):
+    package = ["deadbeef", "deadc0de", "facefeed"]
+    result = {"package_msg": "success"}
+    daemon.session = ClientSessionGood(('submitpackage', [package], result))
+    assert await daemon.broadcast_package(package) == result
 
 @pytest.mark.asyncio
 async def test_relayfee(daemon):
@@ -247,6 +253,21 @@ async def test_relayfee(daemon):
     response = {"relayfee": sats, "other:": "cruft"}
     daemon.session = ClientSessionGood(('getnetworkinfo', [], response))
     assert await daemon.relayfee() == sats
+
+
+@pytest.mark.asyncio
+async def test_mempool_info(daemon):
+    bitcoin_per_kvb = 0.00002123
+    response = {
+        'mempoolminfee': bitcoin_per_kvb,
+        'minrelaytxfee': bitcoin_per_kvb,
+        'incrementalrelayfee': bitcoin_per_kvb,
+        'other': 'cruft',
+    }
+    daemon.session = ClientSessionGood(('getmempoolinfo', [], response))
+    expected_result = dict(response)
+    del expected_result['other']
+    assert await daemon.mempool_info() == expected_result
 
 
 @pytest.mark.asyncio
