@@ -876,7 +876,10 @@ class SessionManager:
             await self._task_group.spawn(session.notify, touched, height_changed)
 
     def _ip_addr_group_name(self, session) -> Optional[str]:
-        host = session.remote_address().host
+        remote_address = session.remote_address()
+        if remote_address is None:
+            return 'unknown_addr'
+        host = remote_address.host
         if isinstance(host, (IPv4Address, IPv6Address)):
             if host.is_private:  # exempt private addresses
                 return None
